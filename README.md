@@ -2,7 +2,7 @@
 
 [![PyPI](https://img.shields.io/badge/Python-3.9-green.svg)]()
 
-GPUStockScanner is a script to scrape various Canadian computer part supplier websites
+GPU Stock Scraper is a script to scrape various Canadian computer part supplier websites
 and determine if stock exists for a given GPU.
 
 #### Websites ####
