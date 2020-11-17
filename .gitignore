@@ -127,5 +127,10 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+<<<<<<< HEAD
 chromedriver
 .vscode/settings.json
+=======
+chromedriver.exe
+desktop.ini
+>>>>>>> 58e6e038f175356f876708eb5603fda8e87f4eb9

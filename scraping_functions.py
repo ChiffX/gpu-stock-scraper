@@ -16,6 +16,8 @@ from email.mime.text import MIMEText
 from fake_useragent import UserAgent
 # import winsound   # Windows only
 import smtplib
+import dotenv
+import os
 
 
 def initialize_webdriver():
@@ -316,13 +318,17 @@ def send_email(subject, message):
     # Manually input login information here
     # beep()  # Windows only
 
-    GMAIL_LOGIN = 'example_email@gmail.com'
-    GMAIL_PASSWORD = 'password'
-
+    # Load sensitive login data from local .env file
+    dotenv.load_dotenv()
+    GMAIL_LOGIN = os.getenv('EMAIL')
+    GMAIL_PASSWORD = os.getenv('PASSWORD')
+    RECIPIENTS = []
+    RECIPIENTS.append(os.getenv("RECIPIENT1"))
+    RECIPIENTS.append(os.getenv("RECIPIENT2"))
+    
+    to_addr = RECIPIENTS
     from_addr = GMAIL_LOGIN
-    to_addr = ["example_email1@gmail.com",
-               "example_email2@gmail.com"
-               ]
+    
     msg = MIMEText(message)
     msg['Subject'] = subject
 
