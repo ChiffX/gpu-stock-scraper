@@ -1,4 +1,4 @@
-# GPUStockScanner
+# GPU Stock Scraper
 
 [![PyPI](https://img.shields.io/badge/Python-3.9-green.svg)]()
 
