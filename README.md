@@ -30,6 +30,7 @@ Optional steps:
 1. Modify search_canada_computers() to reflect your local stores
 2. If using Windows, you can uncomment "import winsound" and beep() in scraping_functions.py to get 
 a beep sound when stock is detected.
+3. If you are receiving an error installing dotenv, try "pip3 install python-dotenv"
 
 #### Next Steps ######
 1. Use a more secure method (potentially oauth) for sending emails
@@ -37,3 +38,4 @@ a beep sound when stock is detected.
 3. Refine search_best_buy() to only return matches for select stores
 4. Incorporate functioning beep noise for both Linux and Windows when stock is detected.
 5. Add pc-canada.com
+
