@@ -20,6 +20,8 @@ At the time of this script, RTX 3080 are being scanned across:
 
 #### Instructions ####
 1. Download appropriate chromedriver to the local script folder
+    1. Can be downloaded from:
+        * https://sites.google.com/a/chromium.org/chromedriver/downloads
 2. Input email information in send_email() function of scraping_functions.py
     1. **NOTE**: This method is fairly insecure and Google will ask you to allow insecure apps to use this method
 3. Run main.py
