@@ -37,7 +37,7 @@ def initialize_webdriver():
     ua = UserAgent()
     userAgent = ua.random
     chromeOptions.add_argument(f'user-agent={userAgent}')
-    chromeOptions.headless = False
+    chromeOptions.headless = True
 
     try:
         driver = webdriver.Chrome(executable_path=WINDOWS_PATH, options=chromeOptions)
