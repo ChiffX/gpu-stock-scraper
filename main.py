@@ -5,7 +5,7 @@ Generates and sends email with link and details to in-stock item when detected.
 import random
 import datetime
 import time
-from .scraping.scraping_functions import search_newegg, search_bestbuy, search_memory_express, search_canada_computers
+from scraping.scraping_functions import search_newegg, search_bestbuy, search_memory_express, search_canada_computers
 
 
 def main():

@@ -21,7 +21,7 @@ At the time of this script, RTX 3080 are being scanned across:
 ## Usage
 
 ### Requirements
-1. Download appropriate [chromedriver](https://sites.google.com/a/chromium.org/chromedriver/downloads) to the `/scraping` folder
+1. Download appropriate [chromedriver](https://sites.google.com/a/chromium.org/chromedriver/downloads) to the `scraping/` folder
 2. `pip3 install -r requirements.txt`
 3. Create a .env file, using .env_sample as a guide, and input email information 
     * **NOTE**: This method is fairly insecure and Google will ask you to allow insecure apps to use this method
