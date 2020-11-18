@@ -13,7 +13,8 @@ At the time of this script, RTX 3080 are being scanned across:
 * Bestbuy.ca
     * Differentiates online vs backorder vs nearby-store stock
 * Memoryexpress.com
-    * Checks online and store stock as one
+    * Differentiates online vs in-store stock
+    * Allows selection of specific stores
 * Canadacomputers.com
     * Differentiates online vs in-store stock
     * Allows selection of specific stores
@@ -37,8 +38,7 @@ a beep sound when stock is detected.
 
 ## Project Next Steps 
 1. Use a more secure method (potentially oauth) for sending emails
-2. Further refine search_memory_express() to be store-location specific
-3. Refine search_best_buy() to only return matches for select stores
-4. Incorporate functioning beep noise for both Linux and Windows when stock is detected.
-5. Add pc-canada.com
+2. Refine search_best_buy() to only return matches for select stores
+3. Incorporate functioning beep noise for both Linux and Windows when stock is detected.
+4. Add pc-canada.com
 

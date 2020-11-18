@@ -1,4 +1,4 @@
-"""This module contains the functions necessary to scan computer supplier webpages and send emails
+""This module contains the functions necessary to scan computer supplier webpages and send emails
 
 Functions:
     initialize_webdriver()
@@ -48,11 +48,12 @@ def initialize_webdriver():
     return driver
 
 
-def search_newegg(URL, previous_message):
+def search_newegg(URL, previous_message, driver):
     """Scrapes a single newegg.ca webpage with multiple listings for any in-stock RTX 3080s.
     Sends an email with corresponding GPU details and link if stock is found.
 
     :param URL: a single newegg.ca webpage with multiple listings
+    :param driver: an initialized webdriver
     :return: none
     """
     # Title line
@@ -64,7 +65,6 @@ def search_newegg(URL, previous_message):
     # Check all GPU listings on page for stock
     stock_list = []
 
-    driver = initialize_webdriver()
     driver.get(URL)
     driver.implicitly_wait(10)
     elements = driver.find_elements_by_class_name("item-operate")  # Contains stock information text
@@ -91,17 +91,17 @@ def search_newegg(URL, previous_message):
         print("Previous email items still in stock.")
     else:
         print("No stock found")
-    driver.close()
 
     return email_message
 
 
-def search_bestbuy(URL, previous_message):
+def search_bestbuy(URL, previous_message, driver):
     """Scrapes a single bestbuy.ca webpage with multiple listings for any in-stock RTX 3080s.
     Sends an email with corresponding GPU details and link if stock is found.
     Differentiates in-store vs online vs backorder stock.
 
     :param URL: a single bestbuy.ca webpage with multiple listings
+    :param driver: an initialized webdriver
     :return: none
     """
     # Title line
@@ -114,7 +114,6 @@ def search_bestbuy(URL, previous_message):
     stock_list = []
     stock_type = []
 
-    driver = initialize_webdriver()
     driver.get(URL)
     driver.implicitly_wait(10)
     elements = driver.find_elements_by_class_name("availabilityMessageSearch_23ZLw")  # Contains stock information text
@@ -160,16 +159,16 @@ def search_bestbuy(URL, previous_message):
     else:
         print("No stock found")
 
-    driver.close()
 
     return email_message
 
 
-def search_memory_express(URL, previous_message):
+def search_memory_express(URL, previous_message, driver):
     """Scrapes a single memoryexpress.com webpage with multiple listings for any in-stock RTX 3080s.
     Sends an email with corresponding GPU details and link if stock is found.
 
     :param URL: a single memoryexpress.com webpage with multiple listings
+    :param driver: an initialized webdriver
     :return: none
     """
     # Title line
@@ -179,38 +178,100 @@ def search_memory_express(URL, previous_message):
     print(vendor)
 
     # Check all GPU listings on page for stock
-    stock_list = []
+    stock_dict = {}
+    memory_express_urls = []
+    store_to_check = "Vancouver"
 
-    driver = initialize_webdriver()
     driver.get(URL)
     driver.implicitly_wait(10)
     elements = driver.find_elements_by_class_name("c-shca-add-product-button")  # Contains stock information text
     for element in elements:
-        # print(element.get_attribute('title'))
         if "Buy this item" in element.get_attribute('title'):
-            stock_list.append("In stock")
+            model_xpath = element.find_element_by_xpath('./../../../div[1]/div[2]/div[2]/a')
+            link = model_xpath.get_attribute("href")
+            memory_express_urls.append(link)
 
-    # If any on GPUs on page were found in stock, send an email
-    if "In stock" in stock_list:
+    # Iterates through individual pages for where stock may have been detected
+    for URL in memory_express_urls:
+            driver.get(URL)
+            driver.implicitly_wait(10)
+
+            # Stores GPU and link details
+            item_name = driver.title.rstrip("- Memory Express Inc.")
+            stock_dict[item_name] = {}
+            stock_dict[item_name]["url"] = URL
+            
+            # Checks online stock status before proceeding
+            stores_inventory = driver.find_elements_by_class_name('c-capr-inventory-store__name')
+            for store_location in stores_inventory:
+                if "Online Store" in store_location.text:
+                    store_stock = (store_location.find_element_by_xpath('./../span[2]')).text
+                    if store_stock != "Out of Stock" and int(store_stock.rstrip("+")) > 0:
+                        print(f"Online stock found: \n{URL}")
+                        stock_dict[item_name]["online stock status"] = "In stock"
+                    else:
+                        stock_dict[item_name]["online stock status"] = "Out of stock"
+
+            # Expand the stores availability frame
+            all_stores_toggle = driver.find_element_by_css_selector(".c-capr-inventory-selector__toggle")
+            driver.execute_script("arguments[0].setAttribute('class','c-capr-inventory-selector__toggle c-capr-inventory-selector__toggle--opened')", all_stores_toggle)
+            second_stores_toggle = driver.find_element_by_css_selector(".c-capr-inventory-selector__dropdown-container")
+            driver.execute_script("arguments[0].setAttribute('class','c-capr-inventory-selector__dropdown-container')", second_stores_toggle)
+            stores_inventory = driver.find_elements_by_class_name('c-capr-inventory-store__name')
+
+            # Checks and stores local store stock status for GPU model
+            stock_dict[item_name]["in store status"] = "No store stock"
+            for store_location in stores_inventory:
+                store_stock = (store_location.find_element_by_xpath('./../span[2]')).text
+                if store_stock != "Out of Stock" and int(store_stock.rstrip("+")) > 0:
+                    store_in_stock = (store_location.text).rstrip(':')
+                    if store_to_check.lower() in store_in_stock.lower():
+                        stock_dict[item_name]["in store status"] = "In store"
+                        stock_dict[item_name]["store location"] = store_to_check
+                    
+
+    # Creates a summary list of items in stock, differentiating online vs in store
+    stock_summary = []
+    for model, details in stock_dict.items():
+        if details["online stock status"] == "In stock":
+            stock_summary.append(f"{model} is in stock ONLINE at Memory Express:\n"
+                                 f"{details['url']}\n")
+        if details["in store status"] == "In store":
+            stock_summary.append(f"{model} is in stock IN STORE at Memory Express\n"
+                                 f"{details['store location'].upper()}\n"
+                                 f"{details['url']}\n")
+
+    # Generates an email message from the summary list
+    email_message = ""
+    for items in stock_summary:
+        email_message += items
+        
+    # If any on GPUs on page were found in stock, send an email, differentiating by stock type
+    if email_message != "" and email_message[:20] not in previous_message:
         print("Sending email.")
-        subject = "RTX 3080 in Stock at Memory Express"
-        message = f"In stock: {URL}"
-        send_email(subject, message)
-
+        if "online" in email_message.lower() and "in store" in email_message.lower():
+            subject = "RTX 3080 in Stock ONLINE and IN STORE at Memory Express"
+        elif "online" in email_message.lower():
+            subject = "RTX 3080 in Stock ONLINE at Memory Express"
+        elif "in store" in email_message.lower():
+            subject = "RTX 3080 in Stock IN STORE at Memory Express"
+        send_email(subject, email_message) 
+    elif email_message != "":
+        print("Previous email items still in stock.")
     else:
         print("No stock found")
-    driver.close()
 
-    return None  # Eventually update to reflect better email message
+    return email_message
 
 
-def search_canada_computers(URL, previous_message):
+def search_canada_computers(URL, previous_message, driver):
     """Scrapes a single canadacomputers.com webpage with multiple listings for any in-stock RTX 3080s.
     Sends an email with corresponding GPU details and link if stock is found.
     Differentiates by in-store vs online.
     Searches for Richmond Hill or Markham in-store stock only.
 
     :param URL: a single canadacomputers.com webpage with multiple listings
+    :param driver: an initialized webdriver
     :return: none
     """
     # Title line
@@ -223,7 +284,6 @@ def search_canada_computers(URL, previous_message):
     stock_dict = {}
     canada_computer_urls = []
 
-    driver = initialize_webdriver()
     driver.get(URL)
     driver.implicitly_wait(10)
     stock_elements = driver.find_elements_by_class_name('pq-hdr-bolder')  # Contains stock information text
@@ -244,7 +304,7 @@ def search_canada_computers(URL, previous_message):
             stock_dict[item_name]["url"] = URL
             # Checks and stores online stock status for GPU model
             if "Online In Stock" in elements.text:
-                print(f"Online stock found: {URL}")
+                print(f"Online stock found: \n{URL}")
                 stock_dict[item_name]["online stock status"] = "In stock"
             else:
                 stock_dict[item_name]["online stock status"] = "Out of stock"
@@ -281,8 +341,12 @@ def search_canada_computers(URL, previous_message):
 
                 # Checks stock at chosen locations
                 if richmond_hill_stock > 0 or markham_stock > 0:
-                    print(f"In-store stock found: {URL}")
+                    print(f"In-store stock found: \n{URL}")
                     stock_dict[item_name]["in store status"] = "In store"
+                    if richmond_hill_stock > 0:
+                        stock_dict[item_name]["store location"] = "Richmond Hill"
+                    elif markham_stock > 0:
+                        stock_dict[item_name]["store location"] = "Markham Unionville"
                 else:
                     stock_dict[item_name]["in store status"] = "No store stock"
             else:
@@ -295,7 +359,8 @@ def search_canada_computers(URL, previous_message):
             stock_summary.append(f"{model} is in stock ONLINE at Canada Computers:\n"
                                  f"{details['url']}\n")
         if details["in store status"] == "In store":
-            stock_summary.append(f"{model} is in stock IN STORE at Canada Computers:\n"
+            stock_summary.append(f"{model} is in stock IN STORE at Canada Computers\n"
+                                 f"{details['store location'].upper()}\n"
                                  f"{details['url']}\n")
 
     # Generates an email message from the summary list
@@ -317,7 +382,6 @@ def search_canada_computers(URL, previous_message):
         print("Previous email items still in stock.")
     else:
         print("No stock found")
-    driver.close()
 
     return email_message
 
