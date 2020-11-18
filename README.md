@@ -25,7 +25,8 @@ At the time of this script, RTX 3080 are being scanned across:
 2. `pip3 install -r requirements.txt`
 3. Create a .env file, using .env_sample as a guide, and input email information 
     * **NOTE**: This method is fairly insecure and Google will ask you to allow insecure apps to use this method
-3. `python3 main.py`
+### Use
+`python3 main.py`
 
 Optional steps:
 1. Modify search_canada_computers() to reflect your local stores
@@ -33,7 +34,8 @@ Optional steps:
 a beep sound when stock is detected.
 3. If you are receiving an error installing dotenv, try "pip3 install python-dotenv"
 
-#### Next Steps ######
+
+## Project Next Steps 
 1. Use a more secure method (potentially oauth) for sending emails
 2. Further refine search_memory_express() to be store-location specific
 3. Refine search_best_buy() to only return matches for select stores
