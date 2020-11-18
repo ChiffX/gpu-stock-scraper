@@ -6,6 +6,7 @@ Functions:
     search_bestbuy()
     search_memoryexpress()
     search_canada_computers()
+    search_pc_canada()
     send_email()
     beep()
 """
@@ -54,7 +55,7 @@ def search_newegg(URL, previous_message, driver):
 
     :param URL: a single newegg.ca webpage with multiple listings
     :param driver: an initialized webdriver
-    :return: none
+    :return: the email message body
     """
     # Title line
     vendor = "Newegg "
@@ -102,7 +103,7 @@ def search_bestbuy(URL, previous_message, driver):
 
     :param URL: a single bestbuy.ca webpage with multiple listings
     :param driver: an initialized webdriver
-    :return: none
+    :return: the email message body
     """
     # Title line
     vendor = "Best Buy "
@@ -169,7 +170,7 @@ def search_memory_express(URL, previous_message, driver):
 
     :param URL: a single memoryexpress.com webpage with multiple listings
     :param driver: an initialized webdriver
-    :return: none
+    :return: the email message body
     """
     # Title line
     vendor = "Memory Express "
@@ -272,7 +273,7 @@ def search_canada_computers(URL, previous_message, driver):
 
     :param URL: a single canadacomputers.com webpage with multiple listings
     :param driver: an initialized webdriver
-    :return: none
+    :return: the email message body
     """
     # Title line
     vendor = "Canada Computers "
@@ -386,6 +387,53 @@ def search_canada_computers(URL, previous_message, driver):
     return email_message
 
 
+def search_pc_canada(URL, previous_message, driver):
+    """Scrapes a single pc-canada.com webpage with multiple listings for any in-stock RTX 3080s.
+    Sends an email with corresponding GPU details and link if stock is found.
+
+    :param URL: a single pc-canada.com webpage with multiple listings
+    :param driver: an initialized webdriver
+    :return: the email message body
+    """
+    # Title line
+    vendor = "PC Canada "
+    while len(vendor) < 30:
+        vendor += "-"
+    print(vendor)
+
+    # Check all GPU listings on page for stock
+    stock_list = []
+
+    driver.get(URL)
+    driver.implicitly_wait(10)
+    elements = driver.find_elements_by_class_name("text-theme-shipping")  # Contains stock information text
+    for element in elements:
+        if "On Backorder" not in element.text:
+            link_element = element.find_element_by_xpath('./../../../../div[5]/div[1]/p/a')
+            link = link_element.get_attribute("href")
+            model = link_element.text
+            stock_list.append(f"{model} is in stock at PC Canada:\n"
+                              f"{link}\n")
+            print(link)
+
+    # Generates an email message from the summary list
+    email_message = ""
+    for items in stock_list:
+        email_message += items
+
+    # If any on GPUs on page were found in stock, send an email
+    if email_message != "" and email_message[:20] not in previous_message:
+        print("Sending email.")
+        subject = "RTX 3080 in Stock at PC Canada"
+        send_email(subject, email_message)
+    elif email_message != "":
+        print("Previous email items still in stock.")
+    else:
+        print("No stock found")
+
+    return email_message
+
+
 def send_email(subject, message):
     """Sends an email containing the in-stock GPU model and link to the desired recipients
 
@@ -402,7 +450,7 @@ def send_email(subject, message):
     GMAIL_PASSWORD = os.getenv('PASSWORD')
     RECIPIENTS = []
     RECIPIENTS.append(os.getenv("RECIPIENT1"))
-    RECIPIENTS.append(os.getenv("RECIPIENT2"))
+    # RECIPIENTS.append(os.getenv("RECIPIENT2"))
     
     to_addr = RECIPIENTS
     from_addr = GMAIL_LOGIN

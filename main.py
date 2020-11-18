@@ -5,7 +5,7 @@ Generates and sends email with link and details to in-stock item when detected.
 import random
 import datetime
 import time
-from scraping.scraping_functions import search_newegg, search_bestbuy, search_memory_express, search_canada_computers, initialize_webdriver
+from scraping.scraping_functions import search_newegg, search_bestbuy, search_memory_express, search_canada_computers, search_pc_canada, initialize_webdriver
 
 
 def main():
@@ -13,6 +13,7 @@ def main():
     bestbuy_email_msg = ""
     memory_express_email_msg = ""
     canada_computers_email_msg = ""
+    pc_canada_email_msg = ""
     while True:
         # Timestamp for scan
         now = datetime.datetime.now()
@@ -20,6 +21,7 @@ def main():
         
         try:
             driver = initialize_webdriver()
+            
             newegg_email_msg = search_newegg(
                 "https://www.newegg.ca/p/pl?d=Rtx+3080&N=50001402%2050001312%2050001315%2050012150%2050001314%20601357282%20100007708&LeftPriceRange=0+1300",
                 newegg_email_msg, driver)
@@ -29,14 +31,20 @@ def main():
             memory_express_email_msg = search_memory_express(
                 "https://www.memoryexpress.com/Category/VideoCards?FilterID=fdd27ae5-da44-3d27-95bc-3076cc5fc8f3",
                 memory_express_email_msg, driver)
-            canada_computers_email_msg = search_canada_computers('https://www.canadacomputers.com/index.php?cPath=43_557_559&sf=:3_5&mfr=&pr=',
-            canada_computers_email_msg, driver)
-            
+            canada_computers_email_msg = search_canada_computers(
+                'https://www.canadacomputers.com/index.php?cPath=43_557_559&sf=:3_5&mfr=&pr=',
+                canada_computers_email_msg, driver)
+
+            # Not working in headless. Potential javascript issues.        
+            # pc_canada_email_msg = search_pc_canada(
+            #     "https://www.pc-canada.com/p/go/go.asp?CATID=10074&OPTID=111116290%2C1596338%7C%2C111114984%2C19789374",
+            #     pc_canada_email_msg, driver)
+
             driver.close()
         except:
             print("Error")
 
-        # Waits 30 to 90 seconds before attempting next scan
+        # Waits 15 to 30 seconds before attempting next scan
         random_interval = random.randrange(15, 30)
         print(f"\nNext scan in {random_interval} seconds.\n")
         time.sleep(random_interval)
