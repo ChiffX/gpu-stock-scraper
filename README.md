@@ -25,10 +25,10 @@ At the time of this script, RTX 3080 are being scanned across:
 2. `pip3 install -r requirements.txt`
 3. Create a .env file, using .env_sample as a guide, and input email information 
     * **NOTE**: This method is fairly insecure and Google will ask you to allow insecure apps to use this method
-### Use
+### Operation
 `python3 main.py`
 
-Optional steps:
+### Optional customization
 1. Modify search_canada_computers() to reflect your local stores
 2. If using Windows, you can uncomment "import winsound" and beep() in scraping_functions.py to get 
 a beep sound when stock is detected.
