@@ -1,4 +1,4 @@
-""This module contains the functions necessary to scan computer supplier webpages and send emails
+"""This module contains the functions necessary to scan computer supplier webpages and send emails
 
 Functions:
     initialize_webdriver()
