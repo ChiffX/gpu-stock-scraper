@@ -5,7 +5,7 @@
 GPU Stock Scraper is a script to scrape various Canadian computer part supplier websites
 and determine if stock exists for a given GPU.
 
-#### Websites ####
+#### Data Source Websites ####
 
 At the time of this script, RTX 3080 are being scanned across:
 * Newegg.ca
@@ -18,13 +18,14 @@ At the time of this script, RTX 3080 are being scanned across:
     * Differentiates online vs in-store stock
     * Allows selection of specific stores
 
-#### Instructions ####
-1. Download appropriate chromedriver to the local script folder
-    1. Can be downloaded from:
-        * https://sites.google.com/a/chromium.org/chromedriver/downloads
-2. Create a .env file, using .env_sample as a guide, and input email information 
-    1. **NOTE**: This method is fairly insecure and Google will ask you to allow insecure apps to use this method
-3. Run main.py
+## Usage
+
+### Requirements
+1. Download appropriate [chromedriver](https://sites.google.com/a/chromium.org/chromedriver/downloads) to the local script folder
+2. `pip3 install -r requirements.txt`
+3. Create a .env file, using .env_sample as a guide, and input email information 
+    * **NOTE**: This method is fairly insecure and Google will ask you to allow insecure apps to use this method
+3. `python3 main.py`
 
 Optional steps:
 1. Modify search_canada_computers() to reflect your local stores
