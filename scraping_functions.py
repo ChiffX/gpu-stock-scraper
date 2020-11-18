@@ -402,7 +402,7 @@ def send_email(subject, message):
     GMAIL_PASSWORD = os.getenv('PASSWORD')
     RECIPIENTS = []
     RECIPIENTS.append(os.getenv("RECIPIENT1"))
-    # RECIPIENTS.append(os.getenv("RECIPIENT2"))
+    RECIPIENTS.append(os.getenv("RECIPIENT2"))
     
     to_addr = RECIPIENTS
     from_addr = GMAIL_LOGIN
