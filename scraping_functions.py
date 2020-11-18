@@ -28,7 +28,7 @@ def initialize_webdriver():
     :return: the initialized webdriver, ready to accept URLs
     """
     # Manually set the paths to Windows and/or Linux chromedriver location
-    # Chrome Drivers found here: https://sites.google.com/a/chromium.org/chromedriver/downloads
+    # Chrome Drivers fstockound here: https://sites.google.com/a/chromium.org/chromedriver/downloads
     WINDOWS_PATH = './chromedriver.exe'
     LINUX_PATH = './chromedriver'
 
@@ -48,7 +48,7 @@ def initialize_webdriver():
     return driver
 
 
-def search_newegg(URL):
+def search_newegg(URL, previous_message):
     """Scrapes a single newegg.ca webpage with multiple listings for any in-stock RTX 3080s.
     Sends an email with corresponding GPU details and link if stock is found.
 
@@ -83,16 +83,20 @@ def search_newegg(URL):
         email_message += items
 
     # If any on GPUs on page were found in stock, send an email
-    if email_message != "":
+    if email_message != "" and email_message[:20] not in previous_message:
         print("Sending email.")
         subject = "RTX 3080 in Stock at Newegg"
         send_email(subject, email_message)
+    elif email_message != "":
+        print("Previous email items still in stock.")
     else:
         print("No stock found")
     driver.close()
 
+    return email_message
 
-def search_bestbuy(URL):
+
+def search_bestbuy(URL, previous_message):
     """Scrapes a single bestbuy.ca webpage with multiple listings for any in-stock RTX 3080s.
     Sends an email with corresponding GPU details and link if stock is found.
     Differentiates in-store vs online vs backorder stock.
@@ -140,7 +144,7 @@ def search_bestbuy(URL):
         email_message += items
 
     # If any on GPUs on page were found in stock, send an email
-    if email_message != "":
+    if email_message != "" and email_message[:20] not in previous_message:
         print("Sending email.")
         if "online" in stock_type and "store" in stock_type:
             subject = "RTX 3080 in Stock ONLINE and IN STORE at Best Buy"
@@ -151,13 +155,17 @@ def search_bestbuy(URL):
         elif "backorder" in stock_type:
             subject = "RTX 3080 available for BACKORDER at Best Buy"
         send_email(subject, email_message)
+    elif email_message != "":
+        print("Previous email items still in stock.")
     else:
         print("No stock found")
 
     driver.close()
 
+    return email_message
 
-def search_memory_express(URL):
+
+def search_memory_express(URL, previous_message):
     """Scrapes a single memoryexpress.com webpage with multiple listings for any in-stock RTX 3080s.
     Sends an email with corresponding GPU details and link if stock is found.
 
@@ -193,8 +201,10 @@ def search_memory_express(URL):
         print("No stock found")
     driver.close()
 
+    return None  # Eventually update to reflect better email message
 
-def search_canada_computers(URL):
+
+def search_canada_computers(URL, previous_message):
     """Scrapes a single canadacomputers.com webpage with multiple listings for any in-stock RTX 3080s.
     Sends an email with corresponding GPU details and link if stock is found.
     Differentiates by in-store vs online.
@@ -294,7 +304,7 @@ def search_canada_computers(URL):
         email_message += items
 
     # If any on GPUs on page were found in stock, send an email, differentiating by stock type
-    if email_message != "":
+    if email_message != "" and email_message[:20] not in previous_message:
         print("Sending email.")
         if "online" in email_message.lower() and "in store" in email_message.lower():
             subject = "RTX 3080 in Stock ONLINE and IN STORE at Canada Computers"
@@ -302,10 +312,14 @@ def search_canada_computers(URL):
             subject = "RTX 3080 in Stock ONLINE at Canada Computers"
         elif "in store" in email_message.lower():
             subject = "RTX 3080 in Stock IN STORE at Canada Computers"
-        send_email(subject, email_message)
+        send_email(subject, email_message) 
+    elif email_message != "":
+        print("Previous email items still in stock.")
     else:
         print("No stock found")
     driver.close()
+
+    return email_message
 
 
 def send_email(subject, message):
