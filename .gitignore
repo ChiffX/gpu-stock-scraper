@@ -104,6 +104,7 @@ celerybeat.pid
 # Environments
 .env
 .venv
+docker_env
 env/
 venv/
 ENV/
@@ -133,3 +134,6 @@ chromedriver.exe
 desktop.ini
 main_reddit.py
 scraping/scraping_functions_reddit.py
+main_beep_only.py
+scraping/scraping_functions_beep_only.py
+
