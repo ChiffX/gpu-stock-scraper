@@ -80,12 +80,15 @@ def search_newegg(URL, previous_message, driver):
     elements = driver.find_elements_by_class_name("item-operate")  # Contains stock information text
     for element in elements:
         if "OUT OF STOCK" not in element.text and "SOLD OUT" not in element.text:
-            link_element = element.find_element_by_xpath('./../../div[1]/a')
-            link = link_element.get_attribute("href")
-            model = link_element.text
-            stock_list.append(f"{model} is in stock at Newegg:\n"
-                              f"{link}\n")
-            print(link)
+            # Secondary check to prevent false-positives for auto notify button
+            secondary_stock_info = (element.find_element_by_xpath('./../../div[2]/div/div[1]/button')).text
+            if "AUTO NOTIFY" not in secondary_stock_info:
+                link_element = element.find_element_by_xpath('./../../div[1]/a')
+                link = link_element.get_attribute("href")
+                model = link_element.text
+                stock_list.append(f"{model} is in stock at Newegg:\n"
+                                f"{link}\n")
+                print(link)
 
     # Generates an email message from the summary list
     email_message = ""
