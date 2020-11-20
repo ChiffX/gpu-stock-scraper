@@ -458,8 +458,10 @@ def send_email(subject, message):
     GMAIL_LOGIN = os.getenv('EMAIL')
     GMAIL_PASSWORD = os.getenv('PASSWORD')
     RECIPIENTS = []
-    RECIPIENTS.append(os.getenv("RECIPIENT1"))
-    RECIPIENTS.append(os.getenv("RECIPIENT2"))
+    if os.getenv("RECIPIENT1") is not None:
+        RECIPIENTS.append(os.getenv("RECIPIENT1"))
+    if os.getenv("RECIPIENT2") is not None:
+        RECIPIENTS.append(os.getenv("RECIPIENT2"))
     
     to_addr = RECIPIENTS
     from_addr = GMAIL_LOGIN

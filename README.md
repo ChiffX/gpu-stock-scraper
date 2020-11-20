@@ -39,6 +39,7 @@ The docker image contains the chromedriver and python3, if you already have dock
 1. Build the image: `docker build -t gpu-stock-scraper .`
 2. Run the image: `docker run --rm -t gpu-stock-scraper`
 3. If you'd like email, set these environment variables `docker run -e EMAIL=${EMAIL} -e PASSWORD=${PASSWORD} -e RECIPIENT1=${RECIPIENT1} -e RECIPIENT2=${RECIPIENT2} --rm -t gpu-stock-scraper`
+4. If you'd like to change the frequency, add the INTERVAL environment variable `docker run -e INTERVAL=60 --rm -t gpu-stock-scraper`
 
 ### Optional customization
 1. Modify search_canada_computers() to reflect your local stores
