@@ -25,10 +25,10 @@ At the time of this script, RTX 3080 are being scanned across:
 1. Download appropriate [chromedriver](https://sites.google.com/a/chromium.org/chromedriver/downloads) to the `scraping/` folder
 2. `pip3 install -r requirements.txt`
 
-## Enabling Gmail
+### Enabling Gmail
 * **NOTE**: This method is fairly insecure and Google will ask you to allow insecure apps to use this method
 1. Go to the [Less secure app access section of your Google Account](https://myaccount.google.com/lesssecureapps). You might need to sign in.
-2. Turn Allow less secure apps off.
+2. Turn Allow less secure apps on.
 3. Create a .env file, using .env_sample as a guide, and input email information 
 
 ### Operation
