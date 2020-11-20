@@ -41,8 +41,8 @@ def main():
             #     pc_canada_email_msg, driver)
 
             driver.close()
-        except:
-            print("Error")
+        except Exception as e:
+            print("Error: " + e)
 
         # Waits 15 to 30 seconds before attempting next scan
         random_interval = random.randrange(15, 30)
