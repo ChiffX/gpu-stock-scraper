@@ -37,8 +37,11 @@ a beep sound when stock is detected.
 
 
 ## Project Next Steps 
-1. Use a more secure method (potentially oauth) for sending emails
-2. Refine search_best_buy() to only return matches for select stores
-3. Incorporate functioning beep noise for both Linux and Windows when stock is detected.
-4. Add pc-canada.com
+* Add model-specific filtering (meanwhile, filter via website then update URL)
+* Improve ease of changing location
+* Add pc-canada.com (currently receiving javascript errors with loading URL)
+* Use a more secure method (potentially oauth) for sending emails
+* Refine search_best_buy() to only return matches for select stores
+* Incorporate functioning beep noise for both Linux and Windows when stock is detected
+
 
