@@ -131,3 +131,5 @@ chromedriver
 .vscode/settings.json
 chromedriver.exe
 desktop.ini
+main_reddit.py
+scraping/scraping_functions_reddit.py
