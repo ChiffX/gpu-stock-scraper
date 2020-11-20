@@ -38,7 +38,7 @@ At the time of this script, RTX 3080 are being scanned across:
 The docker image contains the chromedriver and python3, if you already have docker, you're good to go.
 1. Build the image: `docker build -t gpu-stock-scraper .`
 2. Run the image: `docker run --rm -t gpu-stock-scraper`
-3. If you'd like email, mount in a a copy of the .env_sample called docker_env like so `docker run -v docker_env:/usr/workspace/.env --rm -t gpu-stock-scraper`
+3. If you'd like email, set these environment variables `docker run -e EMAIL=${EMAIL} -e PASSWORD=${PASSWORD} -e RECIPIENT1=${RECIPIENT1} -e RECIPIENT2=${RECIPIENT2} --rm -t gpu-stock-scraper`
 
 ### Optional customization
 1. Modify search_canada_computers() to reflect your local stores
