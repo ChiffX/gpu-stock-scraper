@@ -15,6 +15,8 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from email.mime.text import MIMEText
 from fake_useragent import UserAgent
+import os.path
+from os import path
 # import winsound   # Windows only
 import smtplib
 import dotenv
@@ -32,6 +34,7 @@ def initialize_webdriver():
     # Chrome Drivers fstockound here: https://sites.google.com/a/chromium.org/chromedriver/downloads
     WINDOWS_PATH = './chromedriver.exe'
     LINUX_PATH = './chromedriver'
+    DOCKER_PATH = '/usr/local/bin/chromedriver'
 
     # Operates as a random user agent in a headless browser
     chromeOptions = Options()
@@ -40,10 +43,16 @@ def initialize_webdriver():
     chromeOptions.add_argument(f'user-agent={userAgent}')
     chromeOptions.headless = True
 
-    try:
+    if (path.exists(WINDOWS_PATH)):
         driver = webdriver.Chrome(executable_path=WINDOWS_PATH, options=chromeOptions)
-    except:
+    elif (path.exists(LINUX_PATH)):
         driver = webdriver.Chrome(executable_path=LINUX_PATH, options=chromeOptions)
+    else:
+        chromeOptions.add_argument('--no-sandbox')
+        chromeOptions.add_argument('--headless')
+        chromeOptions.add_argument('--disable-gpu')
+        driver = webdriver.Chrome(executable_path=DOCKER_PATH, options=chromeOptions)
+        
     driver.get('chrome://settings/clearBrowserData')
 
     return driver

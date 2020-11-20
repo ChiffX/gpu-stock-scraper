@@ -24,10 +24,21 @@ At the time of this script, RTX 3080 are being scanned across:
 ### Requirements
 1. Download appropriate [chromedriver](https://sites.google.com/a/chromium.org/chromedriver/downloads) to the `scraping/` folder
 2. `pip3 install -r requirements.txt`
+
+### Enabling Gmail
+* **NOTE**: This method is fairly insecure and Google will ask you to allow insecure apps to use this method
+1. Go to the [Less secure app access section of your Google Account](https://myaccount.google.com/lesssecureapps). You might need to sign in.
+2. Turn Allow less secure apps on.
 3. Create a .env file, using .env_sample as a guide, and input email information 
-    * **NOTE**: This method is fairly insecure and Google will ask you to allow insecure apps to use this method
+
 ### Operation
 `python3 main.py`
+
+### Docker Usage
+The docker image contains the chromedriver and python3, if you already have docker, you're good to go.
+1. Build the image: `docker build -t gpu-stock-scraper .`
+2. Run the image: `docker run --rm -t gpu-stock-scraper`
+3. If you'd like email, set these environment variables `docker run -e EMAIL=${EMAIL} -e PASSWORD=${PASSWORD} -e RECIPIENT1=${RECIPIENT1} -e RECIPIENT2=${RECIPIENT2} --rm -t gpu-stock-scraper`
 
 ### Optional customization
 1. Modify search_canada_computers() to reflect your local stores
