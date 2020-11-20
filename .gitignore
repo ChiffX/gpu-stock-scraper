@@ -132,3 +132,5 @@ chromedriver
 .vscode/settings.json
 chromedriver.exe
 desktop.ini
+main_beep_only.py
+scraping/scraping_functions_beep_only.py
