@@ -5,6 +5,7 @@ Generates and sends email with link and details to in-stock item when detected.
 import random
 import datetime
 import time
+import os
 from scraping.scraping_functions import search_newegg, search_bestbuy, search_memory_express, search_canada_computers, search_pc_canada, initialize_webdriver
 
 
@@ -14,6 +15,10 @@ def main():
     memory_express_email_msg = ""
     canada_computers_email_msg = ""
     pc_canada_email_msg = ""
+    userdefined_interval = os.getenv("INTERVAL")
+    if userdefined_interval is not None:
+        print(f"Using user defined interval of {userdefined_interval} (+random 15) seconds .\n")
+    
     while True:
         # Timestamp for scan
         now = datetime.datetime.now()
@@ -44,11 +49,17 @@ def main():
         except Exception as e:
             print("Error: " + e)
 
-        # Waits 15 to 30 seconds before attempting next scan
         random_interval = random.randrange(15, 30)
-        print(f"\nNext scan in {random_interval} seconds.\n")
-        time.sleep(random_interval)
+        if userdefined_interval is None:
+            # Waits 15 to 30 seconds before attempting next scan
+            print(f"\nNext scan in {random_interval} seconds.\n")
+            time.sleep(random_interval)
+        else:
+            interval = int(userdefined_interval) + random_interval
+            print(f"\nNext scan in {interval} seconds.\n")
+            time.sleep(interval)
         random.random()
+
 
 
 if __name__ == "__main__":
