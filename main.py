@@ -47,7 +47,7 @@ def main():
 
             driver.close()
         except Exception as e:
-            print("Error: " + e)
+            print("Error: " + str(e))
 
         random_interval = random.randrange(15, 30)
         if userdefined_interval is None:
