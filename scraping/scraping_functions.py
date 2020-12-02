@@ -23,7 +23,6 @@ import dotenv
 import os
 
 
-
 def initialize_webdriver():
     """Initializes a chrome webdriver for use in the scraping functions.
     Generates a random user agent and run in a headless browser.
@@ -195,8 +194,12 @@ def search_memory_express(URL, previous_message, driver):
     # Check all GPU listings on page for stock
     stock_dict = {}
     memory_express_urls = []
-    store_to_check = "Vancouver"
-
+    stores_to_check = [
+        "Vancouver",
+        "Victoria",
+        "Burnaby",
+    ]
+    
     driver.get(URL)
     driver.implicitly_wait(10)
     elements = driver.find_elements_by_class_name("c-shca-add-product-button")  # Contains stock information text
@@ -221,7 +224,9 @@ def search_memory_express(URL, previous_message, driver):
             for store_location in stores_inventory:
                 if "Online Store" in store_location.text:
                     store_stock = (store_location.find_element_by_xpath('./../span[2]')).text
-                    if store_stock != "Out of Stock" and int(store_stock.rstrip("+")) > 0:
+                    if (store_stock != "Out of Stock" 
+                        and store_stock != "Backorder"
+                        and int(store_stock.rstrip("+")) > 0):
                         print(f"Online stock found: \n{URL}")
                         stock_dict[item_name]["online stock status"] = "In stock"
                     else:
@@ -238,12 +243,17 @@ def search_memory_express(URL, previous_message, driver):
             stock_dict[item_name]["in store status"] = "No store stock"
             for store_location in stores_inventory:
                 store_stock = (store_location.find_element_by_xpath('./../span[2]')).text
-                if store_stock != "Out of Stock" and int(store_stock.rstrip("+")) > 0:
+                if (store_stock != "Out of Stock" 
+                    and store_stock != "Backorder" 
+                    and int(store_stock.rstrip("+")) > 0):
                     store_in_stock = (store_location.text).rstrip(':')
-                    if store_to_check.lower() in store_in_stock.lower():
+                    if store_in_stock in stores_to_check:
+                        print(f"In-store stock found: \n{URL}")
                         stock_dict[item_name]["in store status"] = "In store"
-                        stock_dict[item_name]["store location"] = store_to_check
-                    
+                        if "store location" in stock_dict[item_name]:
+                            stock_dict[item_name]["store location"] += f", {store_in_stock}"
+                        else:
+                            stock_dict[item_name]["store location"] = store_in_stock  
 
     # Creates a summary list of items in stock, differentiating online vs in store
     stock_summary = []
@@ -333,7 +343,7 @@ def search_canada_computers(URL, previous_message, driver):
                 stock_dict[item_name]["online stock status"] = "Out of stock"
 
             # Checks and stores local store stock status for GPU model
-            if "Available In Stores" in elements.text:  
+            if "Available In Stores" in elements.text:
                 # Opens inventory view for all stores
                 other_stores = driver.find_element_by_css_selector(".stocklevel-pop")
                 driver.execute_script("arguments[0].setAttribute('class','stocklevel-pop d-block')", other_stores)
