@@ -23,6 +23,7 @@ import dotenv
 import os
 
 
+
 def initialize_webdriver():
     """Initializes a chrome webdriver for use in the scraping functions.
     Generates a random user agent and run in a headless browser.
@@ -40,6 +41,7 @@ def initialize_webdriver():
     chromeOptions = Options()
     ua = UserAgent()
     userAgent = ua.random
+    chromeOptions.add_experimental_option('excludeSwitches', ['enable-logging'])
     chromeOptions.add_argument(f'user-agent={userAgent}')
     chromeOptions.headless = True
 
@@ -87,7 +89,7 @@ def search_newegg(URL, previous_message, driver):
                 link = link_element.get_attribute("href")
                 model = link_element.text
                 stock_list.append(f"{model} is in stock at Newegg:\n"
-                                f"{link}\n")
+                                f"{link}\n\n")
                 print(link)
 
     # Generates an email message from the summary list
@@ -141,12 +143,12 @@ def search_bestbuy(URL, previous_message, driver):
             print(link)
         elif "Available at nearby stores" in element.text:
             stock_list.append(f"{model} is available in store at Bestbuy:\n"
-                              f"{link}\n")
+                              f"{link}\n\n")
             stock_type.append("store")
             print(link)
         elif "Available for backorder" in element.text:
             stock_list.append(f"{model} is available for backorder at Bestbuy:\n"
-                              f"{link}\n")
+                              f"{link}\n\n")
             stock_type.append("backorder")
             print(link)
 
@@ -248,11 +250,11 @@ def search_memory_express(URL, previous_message, driver):
     for model, details in stock_dict.items():
         if details["online stock status"] == "In stock":
             stock_summary.append(f"{model} is in stock ONLINE at Memory Express:\n"
-                                 f"{details['url']}\n")
+                                 f"{details['url']}\n\n")
         if details["in store status"] == "In store":
             stock_summary.append(f"{model} is in stock IN STORE at Memory Express\n"
                                  f"{details['store location'].upper()}\n"
-                                 f"{details['url']}\n")
+                                 f"{details['url']}\n\n")
 
     # Generates an email message from the summary list
     email_message = ""
@@ -293,6 +295,14 @@ def search_canada_computers(URL, previous_message, driver):
         vendor += "-"
     print(vendor)
 
+    # Input desired store location names here, case sensitive
+    locations_to_check = [
+        # "Markham Unionville",
+        "Midtown Toronto",
+        # "Richmond Hill",
+        "Toronto 284",
+    ]
+
     # Stores all GPU models and respective online vs store stock status
     stock_dict = {}
     canada_computer_urls = []
@@ -323,45 +333,33 @@ def search_canada_computers(URL, previous_message, driver):
                 stock_dict[item_name]["online stock status"] = "Out of stock"
 
             # Checks and stores local store stock status for GPU model
-            if "Available In Stores" in elements.text:
+            if "Available In Stores" in elements.text:  
                 # Opens inventory view for all stores
                 other_stores = driver.find_element_by_css_selector(".stocklevel-pop")
                 driver.execute_script("arguments[0].setAttribute('class','stocklevel-pop d-block')", other_stores)
 
-                # Determines Richmond Hill Stock
-                try:  # Sometimes the stock location changes
-                    richmond_hill_stock = driver.find_element_by_xpath(
-                        '//*[@id="pi-form"]/div[4]/div[3]/div[3]/div[20]/div/div[2]/div/p/span').text
-                except:
-                    richmond_hill_stock = driver.find_element_by_xpath(
-                        '//*[@id="pi-form"]/div[2]/div[3]/div[3]/div[20]/div/div[2]/div/p/span').text
-                if richmond_hill_stock == "-":
-                    richmond_hill_stock = 0
-                else:
-                    richmond_hill_stock = int(richmond_hill_stock[0:1])  # Truncates 5+ to 5
+                # Only changes if stock at desired location is detected
+                stock_dict[item_name]["in store status"] = "No store stock"
 
-                # Determine Markham Stock
-                try:  # Sometimes the stock location changes
-                    markham_stock = driver.find_element_by_xpath(
-                        '//*[@id="pi-form"]/div[4]/div[3]/div[3]/div[13]/div/div[2]/div/p/span').text
-                except:
-                    markham_stock = driver.find_element_by_xpath(
-                        '//*[@id="pi-form"]/div[2]/div[3]/div[3]/div[13]/div/div[2]/div/p/span').text
-                if markham_stock == "-":
-                    markham_stock = 0
-                else:
-                    markham_stock = int(markham_stock[0:1])  # Truncates 5+ to 5
+                for location in locations_to_check:
+                    # Finds location's name on webpage
+                    location_element = driver.find_element_by_link_text(location)
+                    # Finds stock value by xpath relative to location name
+                    stock = location_element.find_element_by_xpath('./../../../div[2]/div/p/span').text
 
-                # Checks stock at chosen locations
-                if richmond_hill_stock > 0 or markham_stock > 0:
-                    print(f"In-store stock found: \n{URL}")
-                    stock_dict[item_name]["in store status"] = "In store"
-                    if richmond_hill_stock > 0:
-                        stock_dict[item_name]["store location"] = "Richmond Hill"
-                    elif markham_stock > 0:
-                        stock_dict[item_name]["store location"] = "Markham Unionville"
-                else:
-                    stock_dict[item_name]["in store status"] = "No store stock"
+                    # Converts stock value into integer
+                    if stock == "-":
+                        stock = 0
+                    else:
+                        stock = int(stock[0:1])  # Truncates 5+ to 5
+                    
+                    if stock > 0:
+                        print(f"In-store stock found: \n{URL}")
+                        stock_dict[item_name]["in store status"] = "In store"
+                        if "store location" in stock_dict[item_name]:
+                            stock_dict[item_name]["store location"] += f", {location}"
+                        else:
+                            stock_dict[item_name]["store location"] = location 
             else:
                 stock_dict[item_name]["in store status"] = "No store stock"
 
@@ -370,11 +368,11 @@ def search_canada_computers(URL, previous_message, driver):
     for model, details in stock_dict.items():
         if details["online stock status"] == "In stock":
             stock_summary.append(f"{model} is in stock ONLINE at Canada Computers:\n"
-                                 f"{details['url']}\n")
+                                 f"{details['url']}\n\n")
         if details["in store status"] == "In store":
             stock_summary.append(f"{model} is in stock IN STORE at Canada Computers\n"
                                  f"{details['store location'].upper()}\n"
-                                 f"{details['url']}\n")
+                                 f"{details['url']}\n\n")
 
     # Generates an email message from the summary list
     email_message = ""
@@ -425,7 +423,7 @@ def search_pc_canada(URL, previous_message, driver):
             link = link_element.get_attribute("href")
             model = link_element.text
             stock_list.append(f"{model} is in stock at PC Canada:\n"
-                              f"{link}\n")
+                              f"{link}\n\n")
             print(link)
 
     # Generates an email message from the summary list
