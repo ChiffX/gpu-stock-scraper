@@ -196,8 +196,8 @@ def search_memory_express(URL, previous_message, driver):
     memory_express_urls = []
     stores_to_check = [
         "Vancouver",
-        "Victoria",
-        "Burnaby",
+        # "Victoria",
+        # "Burnaby",
     ]
     
     driver.get(URL)
