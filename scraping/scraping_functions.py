@@ -31,7 +31,7 @@ def initialize_webdriver():
     :return: the initialized webdriver, ready to accept URLs
     """
     # Manually set the paths to Windows and/or Linux chromedriver location
-    # Chrome Drivers fstockound here: https://sites.google.com/a/chromium.org/chromedriver/downloads
+    # Chrome Drivers found here: https://sites.google.com/a/chromium.org/chromedriver/downloads
     WINDOWS_PATH = './chromedriver.exe'
     LINUX_PATH = './chromedriver'
     DOCKER_PATH = '/usr/local/bin/chromedriver'
@@ -199,7 +199,6 @@ def search_memory_express(URL, previous_message, driver):
         # "Victoria",
         # "Burnaby",
     ]
-    
     driver.get(URL)
     driver.implicitly_wait(10)
     elements = driver.find_elements_by_class_name("c-shca-add-product-button")  # Contains stock information text
@@ -232,28 +231,29 @@ def search_memory_express(URL, previous_message, driver):
                     else:
                         stock_dict[item_name]["online stock status"] = "Out of stock"
 
-            # Expand the stores availability frame
-            all_stores_toggle = driver.find_element_by_css_selector(".c-capr-inventory-selector__toggle")
-            driver.execute_script("arguments[0].setAttribute('class','c-capr-inventory-selector__toggle c-capr-inventory-selector__toggle--opened')", all_stores_toggle)
-            second_stores_toggle = driver.find_element_by_css_selector(".c-capr-inventory-selector__dropdown-container")
-            driver.execute_script("arguments[0].setAttribute('class','c-capr-inventory-selector__dropdown-container')", second_stores_toggle)
-            stores_inventory = driver.find_elements_by_class_name('c-capr-inventory-store__name')
+            if len(stores_to_check) != 0:
+                # Expand the stores availability frame
+                all_stores_toggle = driver.find_element_by_css_selector(".c-capr-inventory-selector__toggle")
+                driver.execute_script("arguments[0].setAttribute('class','c-capr-inventory-selector__toggle c-capr-inventory-selector__toggle--opened')", all_stores_toggle)
+                second_stores_toggle = driver.find_element_by_css_selector(".c-capr-inventory-selector__dropdown-container")
+                driver.execute_script("arguments[0].setAttribute('class','c-capr-inventory-selector__dropdown-container')", second_stores_toggle)
+                stores_inventory = driver.find_elements_by_class_name('c-capr-inventory-store__name')
 
-            # Checks and stores local store stock status for GPU model
-            stock_dict[item_name]["in store status"] = "No store stock"
-            for store_location in stores_inventory:
-                store_stock = (store_location.find_element_by_xpath('./../span[2]')).text
-                if (store_stock != "Out of Stock" 
-                    and store_stock != "Backorder" 
-                    and int(store_stock.rstrip("+")) > 0):
-                    store_in_stock = (store_location.text).rstrip(':')
-                    if store_in_stock in stores_to_check:
-                        print(f"In-store stock found: \n{URL}")
-                        stock_dict[item_name]["in store status"] = "In store"
-                        if "store location" in stock_dict[item_name]:
-                            stock_dict[item_name]["store location"] += f", {store_in_stock}"
-                        else:
-                            stock_dict[item_name]["store location"] = store_in_stock  
+                # Checks and stores local store stock status for GPU model
+                stock_dict[item_name]["in store status"] = "No store stock"
+                for store_location in stores_inventory:
+                    store_stock = (store_location.find_element_by_xpath('./../span[2]')).text
+                    if (store_stock != "Out of Stock" 
+                        and store_stock != "Backorder" 
+                        and int(store_stock.rstrip("+")) > 0):
+                        store_in_stock = (store_location.text).rstrip(':')
+                        if store_in_stock in stores_to_check:
+                            print(f"In-store stock found: \n{URL}")
+                            stock_dict[item_name]["in store status"] = "In store"
+                            if "store location" in stock_dict[item_name]:
+                                stock_dict[item_name]["store location"] += f", {store_in_stock}"
+                            else:
+                                stock_dict[item_name]["store location"] = store_in_stock  
 
     # Creates a summary list of items in stock, differentiating online vs in store
     stock_summary = []
@@ -343,35 +343,36 @@ def search_canada_computers(URL, previous_message, driver):
                 stock_dict[item_name]["online stock status"] = "Out of stock"
 
             # Checks and stores local store stock status for GPU model
-            if "Available In Stores" in elements.text:
-                # Opens inventory view for all stores
-                other_stores = driver.find_element_by_css_selector(".stocklevel-pop")
-                driver.execute_script("arguments[0].setAttribute('class','stocklevel-pop d-block')", other_stores)
+            if len(locations_to_check) != 0:
+                if "Available In Stores" in elements.text:
+                    # Opens inventory view for all stores
+                    other_stores = driver.find_element_by_css_selector(".stocklevel-pop")
+                    driver.execute_script("arguments[0].setAttribute('class','stocklevel-pop d-block')", other_stores)
 
-                # Only changes if stock at desired location is detected
-                stock_dict[item_name]["in store status"] = "No store stock"
+                    # Only changes if stock at desired location is detected
+                    stock_dict[item_name]["in store status"] = "No store stock"
 
-                for location in locations_to_check:
-                    # Finds location's name on webpage
-                    location_element = driver.find_element_by_link_text(location)
-                    # Finds stock value by xpath relative to location name
-                    stock = location_element.find_element_by_xpath('./../../../div[2]/div/p/span').text
+                    for location in locations_to_check:
+                        # Finds location's name on webpage
+                        location_element = driver.find_element_by_link_text(location)
+                        # Finds stock value by xpath relative to location name
+                        stock = location_element.find_element_by_xpath('./../../../div[2]/div/p/span').text
 
-                    # Converts stock value into integer
-                    if stock == "-":
-                        stock = 0
-                    else:
-                        stock = int(stock[0:1])  # Truncates 5+ to 5
-                    
-                    if stock > 0:
-                        print(f"In-store stock found: \n{URL}")
-                        stock_dict[item_name]["in store status"] = "In store"
-                        if "store location" in stock_dict[item_name]:
-                            stock_dict[item_name]["store location"] += f", {location}"
+                        # Converts stock value into integer
+                        if stock == "-":
+                            stock = 0
                         else:
-                            stock_dict[item_name]["store location"] = location 
-            else:
-                stock_dict[item_name]["in store status"] = "No store stock"
+                            stock = int(stock[0:1])  # Truncates 5+ to 5
+                        
+                        if stock > 0:
+                            print(f"In-store stock found: \n{URL}")
+                            stock_dict[item_name]["in store status"] = "In store"
+                            if "store location" in stock_dict[item_name]:
+                                stock_dict[item_name]["store location"] += f", {location}"
+                            else:
+                                stock_dict[item_name]["store location"] = location 
+                else:
+                    stock_dict[item_name]["in store status"] = "No store stock"
 
     # Creates a summary list of items in stock, differentiating online vs in store
     stock_summary = []
