@@ -253,7 +253,9 @@ def search_memory_express(URL, previous_message, driver):
                             if "store location" in stock_dict[item_name]:
                                 stock_dict[item_name]["store location"] += f", {store_in_stock}"
                             else:
-                                stock_dict[item_name]["store location"] = store_in_stock  
+                                stock_dict[item_name]["store location"] = store_in_stock 
+            else:
+                stock_dict[item_name]["in store status"] = "Not checked" 
 
     # Creates a summary list of items in stock, differentiating online vs in store
     stock_summary = []
@@ -373,6 +375,8 @@ def search_canada_computers(URL, previous_message, driver):
                                 stock_dict[item_name]["store location"] = location 
                 else:
                     stock_dict[item_name]["in store status"] = "No store stock"
+            else:
+                stock_dict[item_name]["in store status"] = "Not checked"
 
     # Creates a summary list of items in stock, differentiating online vs in store
     stock_summary = []
