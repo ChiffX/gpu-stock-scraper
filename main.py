@@ -14,10 +14,8 @@ vendors_to_scrape = {
     "Best Buy": "https://www.bestbuy.ca/en-ca/collection/rtx-30-series-graphic-cards/316108?path=category%253AComputers%2B%2526%2BTablets%253Bcategory%253APC%2BComponents%253Bcategory%253AGraphics%2BCards%253Bcustom0graphicscardtype%253AGeForce%2BRTX%2B3080",
     "Memory Express": "https://www.memoryexpress.com/Category/VideoCards?FilterID=fdd27ae5-da44-3d27-95bc-3076cc5fc8f3",
     "Canada Computers": "https://www.canadacomputers.com/index.php?cPath=43_557_559&sf=:3_5&mfr=&pr=",
-    "Amazon": "https://www.amazon.ca/stores/GeForce/RTX3080_GEFORCERTX30SERIES/page/6B204EA4-AAAC-4776-82B1-D7C3BD9DDC82"
-
-    # Not working in headless. Potential javascript issues.   
-    # "PC Canada": "https://www.pc-canada.com/p/go/go.asp?CATID=10074&OPTID=111116290%2C1596338%7C%2C111114984%2C19789374",
+    "Amazon": "https://www.amazon.ca/stores/GeForce/RTX3080_GEFORCERTX30SERIES/page/6B204EA4-AAAC-4776-82B1-D7C3BD9DDC82",
+    "PC Canada": "https://www.pc-canada.com/p/go/go.asp?CATID=10074&OPTID=111116290%2C1596338%7C%2C111114984%2C19789374",
 }
 
 # Used for email subject line only. URLs in vendors_to_scrape must be updated to actually scrape for it.

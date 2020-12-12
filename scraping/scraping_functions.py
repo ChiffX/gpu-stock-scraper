@@ -197,9 +197,9 @@ def scrape_memory_express(driver, vendor_name):
     # Add or comment/uncomment desired store location names here, case sensitive
     stores_to_check = [
         "Vancouver",
-        # "Victoria",
-        # "Burnaby",
-        # "Richmond",
+        "Victoria",
+        "Burnaby",
+        "Richmond",
     ]
 
     # Check all listings on page for stock
@@ -218,7 +218,7 @@ def scrape_memory_express(driver, vendor_name):
         driver.get(URL)
         driver.implicitly_wait(10)
 
-        # Stores GPU and link details
+        # Stores item and link details
         item_name = driver.title.rstrip("- Memory Express Inc.")
         stock_dict[item_name] = {}
         stock_dict[item_name]["url"] = URL
@@ -244,7 +244,7 @@ def scrape_memory_express(driver, vendor_name):
             driver.execute_script("arguments[0].setAttribute('class','c-capr-inventory-selector__dropdown-container')", second_stores_toggle)
             stores_inventory = driver.find_elements_by_class_name('c-capr-inventory-store__name')
 
-            # Checks and stores local store stock status for GPU model
+            # Checks and stores local store stock status for item
             stock_dict[item_name]["in store status"] = "No store stock"
             for store_location in stores_inventory:
                 store_stock = (store_location.find_element_by_xpath('./../span[2]')).text
@@ -278,14 +278,14 @@ def scrape_canada_computers(driver, vendor_name):
     """
     # Add or comment/uncomment desired store location names here, case sensitive
     stores_to_check = [
-        # "Markham Unionville",
+        "Markham Unionville",
         "Midtown Toronto",
-        # "Richmond Hill",
+        "Richmond Hill",
         "Toronto 284",
-        # "Vancouver Broadway",
-        # "East Vancouver",
-        # "Burnaby",
-        # "Richmond",
+        "Vancouver Broadway",
+        "East Vancouver",
+        "Burnaby",
+        "Richmond",
     ]
 
     # Check all listings on page for stock
@@ -308,14 +308,14 @@ def scrape_canada_computers(driver, vendor_name):
             item_name = driver.title.rstrip("| Canada Computers & Electronics")
             stock_dict[item_name] = {}
             stock_dict[item_name]["url"] = URL
-            # Checks and stores online stock status for GPU model
+            # Checks and stores online stock status for item
             if "Online In Stock" in elements.text:
                 print(f"Online stock found: \n{URL}")
                 stock_dict[item_name]["online stock status"] = "In stock"
             else:
                 stock_dict[item_name]["online stock status"] = "Out of stock"
 
-            # Checks and stores local store stock status for GPU model
+            # Checks and stores local store stock status for item
             if len(stores_to_check) != 0:
                 if "Available In Stores" in elements.text:
                     # Opens inventory view for all stores
@@ -395,15 +395,16 @@ def scrape_pc_canada(driver, vendor_name):
     :return: email_body
     """
 
-    # Check all GPU listings on page for stock
+    # Check all listings on page for stock
     stock_dict = {}
 
-    stock_status_elements = driver.find_elements_by_class_name("text-theme-shipping")  # Contains stock information text
+    stock_status_elements = driver.find_elements_by_css_selector("p.text-theme-shipping")  # Contains stock information text
     for stock_status in stock_status_elements:
-        if "On Backorder" not in stock_status.text:
+        if "On Backorder" not in stock_status.text and "" != stock_status.text:
             item_URL_element = stock_status.find_element_by_xpath('./../../../../div[5]/div[1]/p/a')
             item_URL = item_URL_element.get_attribute("href")
             item_name = item_URL_element.text
+            print(item_name)
             stock_dict[item_name] = {}
             stock_dict[item_name]["url"] = item_URL
             print(f"Online stock found: \n{item_URL}")
@@ -469,7 +470,7 @@ def maybe_send_email(item, email_body, email_bodies, vendor_name):
 
 
 def send_email(subject, email_body):
-    """Sends an email containing the in-stock GPU model and link to the desired recipients
+    """Sends an email containing the in-stock item details and link to the desired recipients
 
     :param subject: a string containing the in-stock status type and which website
     :param email_body: a string containing in-stock model details and website link

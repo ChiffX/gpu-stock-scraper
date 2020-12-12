@@ -3,7 +3,7 @@
 [![PyPI](https://img.shields.io/badge/Python-3.9-green.svg)]()
 
 GPU Stock Scraper is a script to scrape various Canadian computer part supplier websites
-and determine if stock exists for a given GPU.
+and determine if stock exists for a given item.
 
 #### Data Source Websites ####
 
@@ -18,6 +18,10 @@ At the time of this script, RTX 3080 are being scanned across:
 * Canadacomputers.com
     * Differentiates online vs in-store stock
     * Allows selection of specific stores
+* Amazon.ca
+    * Checks online stock
+* PC-canada.com
+    * Checks online stock
 
 ## Usage
 
@@ -42,7 +46,7 @@ The docker image contains the chromedriver and python3, if you already have dock
 4. If you'd like to change the base interval frequency, add the INTERVAL environment variable `docker run -e INTERVAL=60 --rm -t gpu-stock-scraper`
 
 ### Optional customization
-1. Modify search_canada_computers() to reflect your local stores
+1. Modify stores_to_check in scrape_canada_computers() and scrape_memory_express() to reflect your local stores
 2. If using Windows, you can uncomment "import winsound" and beep() in scraping_functions.py to get 
 a beep sound when stock is detected.
 3. If you are receiving an error installing dotenv, try "pip3 install python-dotenv"
@@ -50,7 +54,6 @@ a beep sound when stock is detected.
 
 ## Project Next Steps 
 * Add model-specific filtering (meanwhile, filter via website then update URL)
-* Add pc-canada.com (currently receiving javascript errors with loading URL)
 * Use a more secure method (potentially oauth) for sending emails
 * Refine search_best_buy() to only return matches for select stores
 * Incorporate functioning beep noise for both Linux and Windows when stock is detected
