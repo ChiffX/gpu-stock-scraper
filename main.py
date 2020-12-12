@@ -6,45 +6,47 @@ import random
 import datetime
 import time
 import os
-from scraping.scraping_functions import search_newegg, search_bestbuy, search_memory_express, search_canada_computers, search_pc_canada, initialize_webdriver
+from scraping.scraping_functions import scrape_vendors, initialize_webdriver
 
+# Comment/uncomment vendors and change URLs as needed, but keep the same webpage structure for each vendor.
+vendors_to_scrape = {
+    "Newegg": "https://www.newegg.ca/p/pl?d=Rtx+3080&N=50001402%2050001312%2050001315%2050012150%2050001314%20601357282%20100007708&LeftPriceRange=0+1300",
+    "Best Buy": "https://www.bestbuy.ca/en-ca/collection/rtx-30-series-graphic-cards/316108?path=category%253AComputers%2B%2526%2BTablets%253Bcategory%253APC%2BComponents%253Bcategory%253AGraphics%2BCards%253Bcustom0graphicscardtype%253AGeForce%2BRTX%2B3080",
+    "Memory Express": "https://www.memoryexpress.com/Category/VideoCards?FilterID=fdd27ae5-da44-3d27-95bc-3076cc5fc8f3",
+    "Canada Computers": "https://www.canadacomputers.com/index.php?cPath=43_557_559&sf=:3_5&mfr=&pr=",
+    
+    # Not working in headless. Potential javascript issues.   
+    # "PC Canada": "https://www.pc-canada.com/p/go/go.asp?CATID=10074&OPTID=111116290%2C1596338%7C%2C111114984%2C19789374",
+}
+
+# Used for email subject line only. URLs in vendors_to_scrape must be updated to actually scrape for it.
+item = "RTX 3080"
 
 def main():
-    newegg_email_msg = ""
-    bestbuy_email_msg = ""
-    memory_express_email_msg = ""
-    canada_computers_email_msg = ""
-    pc_canada_email_msg = ""
+    # Initial email message states. Prevents email spamming later.
+    email_bodies = {
+        "Newegg": "",
+        "Best Buy": "",
+        "Memory Express": "",
+        "Canada Computers": "",
+        "PC Canada": "",
+    }
+
     userdefined_interval = os.getenv("INTERVAL")
     if userdefined_interval is not None:
         print(f"Using user defined interval of {userdefined_interval} (+random 15) seconds .\n")
-    
+
     while True:
         # Timestamp for scan
         now = datetime.datetime.now()
         print(now.strftime("%Y-%m-%d %H:%M:%S"))
-        
+
         try:
             driver = initialize_webdriver()
-            
-            newegg_email_msg = search_newegg(
-                "https://www.newegg.ca/p/pl?d=Rtx+3080&N=50001402%2050001312%2050001315%2050012150%2050001314%20601357282%20100007708&LeftPriceRange=0+1300",
-                newegg_email_msg, driver)
-            bestbuy_email_msg = search_bestbuy(
-                "https://www.bestbuy.ca/en-ca/collection/rtx-30-series-graphic-cards/316108?path=category%253AComputers%2B%2526%2BTablets%253Bcategory%253APC%2BComponents%253Bcategory%253AGraphics%2BCards%253Bcustom0graphicscardtype%253AGeForce%2BRTX%2B3080",
-                bestbuy_email_msg, driver)
-            memory_express_email_msg = search_memory_express(
-                "https://www.memoryexpress.com/Category/VideoCards?FilterID=fdd27ae5-da44-3d27-95bc-3076cc5fc8f3",
-                memory_express_email_msg, driver)
-            canada_computers_email_msg = search_canada_computers(
-                'https://www.canadacomputers.com/index.php?cPath=43_557_559&sf=:3_5&mfr=&pr=',
-                canada_computers_email_msg, driver)
-
-            # Not working in headless. Potential javascript issues.        
-            # pc_canada_email_msg = search_pc_canada(
-            #     "https://www.pc-canada.com/p/go/go.asp?CATID=10074&OPTID=111116290%2C1596338%7C%2C111114984%2C19789374",
-            #     pc_canada_email_msg, driver)
-
+            # Scrapes all specified vendors
+            for vendor_name, URL in vendors_to_scrape.items():
+                email_body = scrape_vendors(vendor_name, URL, driver, item, email_bodies)
+                email_bodies[vendor_name] = email_body
             driver.close()
         except Exception as e:
             print("Error: " + str(e))
@@ -59,7 +61,6 @@ def main():
             print(f"\nNext scan in {interval} seconds.\n")
             time.sleep(interval)
         random.random()
-
 
 
 if __name__ == "__main__":
