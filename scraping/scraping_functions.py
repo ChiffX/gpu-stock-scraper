@@ -7,6 +7,7 @@ Functions:
     scrape_bestbuy()
     scrape_memoryexpress()
     scrape_canada_computers()
+    scrape_amazon()
     scrape_pc_canada()
     maybe_send_email()
     send_email()
@@ -94,6 +95,11 @@ def scrape_vendors(vendor_name, URL, driver, item, email_bodies):
         email_body = scrape_canada_computers(driver, vendor_name)
         maybe_send_email(item, email_body, email_bodies, vendor_name)
         return email_body
+    elif vendor_name.lower().strip() == "amazon":
+        email_body = scrape_amazon(driver, vendor_name)
+        maybe_send_email(item, email_body, email_bodies, vendor_name)
+        return email_body
+            
     elif vendor_name.lower().strip() == "pc canada":
         email_body = scrape_pc_canada(driver, vendor_name)
         maybe_send_email(item, email_body, email_bodies, vendor_name)
@@ -345,6 +351,37 @@ def scrape_canada_computers(driver, vendor_name):
             
             stock_dict[item_name]["backorder status"] = "Not checked"
             
+    email_body = generate_email_body(stock_dict, vendor_name)
+
+    return email_body
+
+
+def scrape_amazon(driver, vendor_name):
+    """Scrapes a single amazon.ca webpage with multiple listings for any in-stock items.
+
+    :param driver: an initialized webdriver
+    :param vendor_name: the name of the vendor for the respective webpage
+    :return: email_body
+    """
+    # Check all listings on page for stock
+    stock_dict = {}
+
+    stock_status_elements = driver.find_elements_by_class_name("style__whole__3EZEk")  # Contains price information if in stock
+    for stock_status in stock_status_elements:
+        price = float((stock_status.text).replace(",", ""))
+        # Set price limit here
+        if price < 1300:
+            item_URL_element = stock_status.find_element_by_xpath('./../../../../../../../div[1]/a')
+            item_URL = item_URL_element.get_attribute("href")
+            item_name_element = stock_status.find_element_by_xpath('./../../../../div[1]/a')
+            item_name = item_name_element.text
+            stock_dict[item_name] = {}
+            stock_dict[item_name]["url"] = item_URL
+            print(f"Online stock found: \n{item_URL}")
+            stock_dict[item_name]["online stock status"] = "In stock"
+            stock_dict[item_name]["in store status"] = "Not checked"
+            stock_dict[item_name]["backorder status"] = "Not checked"
+
     email_body = generate_email_body(stock_dict, vendor_name)
 
     return email_body
