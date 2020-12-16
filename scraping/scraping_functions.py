@@ -529,10 +529,10 @@ def send_discord_message(subject, email_body):
     :param subject: the subject line of an email message
     :param email_body: the email body of an email message
     """
+    dotenv.load_dotenv()
     webhook_url = os.getenv('DISCORD_WEBHOOK')
     webhook = Webhook.from_url(webhook_url, adapter=RequestsWebhookAdapter())
     webhook.send(f"{subject}\n{email_body}")
-
 
 # Windows only
 # def beep():
