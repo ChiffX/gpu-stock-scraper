@@ -23,7 +23,7 @@ from fake_useragent import UserAgent
 import os.path
 from os import path
 import requests
-from discord import Webhook, RequestsWebhookAdapter
+from discord import Webhook, RequestsWebhookAdapter, Embed
 # import winsound   # Windows only
 import smtplib
 import dotenv
@@ -524,7 +524,7 @@ def title_line(vendor_name):
 
 
 def send_discord_message(subject, email_body):
-    """Sends a message to your specific discord channel
+    """Sends an embedded message to your specific discord channel
     
     :param subject: the subject line of an email message
     :param email_body: the email body of an email message
@@ -532,7 +532,8 @@ def send_discord_message(subject, email_body):
     dotenv.load_dotenv()
     webhook_url = os.getenv('DISCORD_WEBHOOK')
     webhook = Webhook.from_url(webhook_url, adapter=RequestsWebhookAdapter())
-    webhook.send(f"{subject}\n{email_body}")
+    embed = Embed(title=subject, description=email_body)
+    webhook.send(embed=embed)
 
 # Windows only
 # def beep():
