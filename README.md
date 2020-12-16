@@ -57,9 +57,11 @@ The docker image contains the chromedriver and python3, if you already have dock
 
 
 ## Project Next Steps 
-* Add model-specific filtering (meanwhile, filter via website then update URL)
-* Use a more secure method (potentially oauth) for sending emails
-* Refine search_best_buy() to only return matches for select stores
 * Build a config file
+* Decouple email, discord, and beep functions from the scraping_functions.py file into their own
+* Add model-specific filtering (meanwhile, filter via website then update URL)
+* Refine search_best_buy() to only return matches for select stores
+* Use a more secure method (potentially oauth) for sending emails
+
 
 
