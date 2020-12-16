@@ -1,4 +1,4 @@
-"""This module contains the functions necessary to scan computer supplier webpages and send emails
+"""This module contains the functions necessary to scan computer supplier webpages and send messages
 
 Functions:
     initialize_webdriver()
@@ -13,7 +13,7 @@ Functions:
     send_email()
     send_discord_message()
     title_line()
-    beep()
+    make_beep_noise()
 """
 
 from selenium import webdriver
@@ -24,15 +24,22 @@ import os.path
 from os import path
 import requests
 from discord import Webhook, RequestsWebhookAdapter, Embed
-# import winsound   # Windows only
 import smtplib
 import dotenv
 import os
+import sys
+
+# Beep style based on system type
+if sys.platform == "win32":
+    import winsound
+elif sys.platform == "linux":
+    from beepy import beep
 
 
-# Optional use of send_discord_message() and send_email() functions. Set to True for on
-discord_enabled = True
+# Set to True to turn on
+discord_message_enabled = False
 email_enabled = True
+beep_enabled = True
 
 
 def initialize_webdriver():
@@ -457,11 +464,17 @@ def maybe_send_email(item, email_body, email_bodies, vendor_name):
     """Sends an email if the email body is not blank and is not the same as the previous email body
     Prevents spamming emails. Optionally sends a discord message too.
 
+    :param item: the name of the item being checked for
     :param email_body: a string containing in-stock items
+    :param email_bodies: the email body from the previous email sent, "" if no previous body
+    :param vendor_name: the vendor name
     :return: none
     """
+    # Only sends if the email body does not start the same as the last email sent
     if email_body != "" and email_body[:20] not in email_bodies[vendor_name]:
-        print("Sending email.")
+        print("Stock detected. Sending selected message types.")
+        
+        # Comes up with the subject line based on availability type
         if "online" in email_body.lower() and "in store" in email_body.lower():
             subject = f"{item} in Stock ONLINE and IN STORE at {vendor_name}"
         elif "online" in email_body.lower():
@@ -470,13 +483,18 @@ def maybe_send_email(item, email_body, email_bodies, vendor_name):
             subject = f"{item} in Stock IN STORE at {vendor_name}"
         elif "backorder" in email_body.lower():
             subject = f"{item} available for BACKORDER at {vendor_name}"
-        if discord_enabled:
+
+        # Sends different notification types
+        if beep_enabled:
+            make_beep_noise()
+        if discord_message_enabled:
             try:
                 send_discord_message(subject, email_body)
             except:
                 print("Error with sending discord message.")
         if send_email:
             send_email(subject, email_body) 
+
     elif email_body != "":
         print("Previous email items still in stock.")
     else:
@@ -535,8 +553,16 @@ def send_discord_message(subject, email_body):
     embed = Embed(title=subject, description=email_body)
     webhook.send(embed=embed)
 
-# Windows only
-# def beep():
-#     duration = 1000
-#     freq = 1000
-#     winsound.Beep(freq, duration)
+
+def make_beep_noise():
+    """Makes an audible beep sound. Supports Windows and Linux."""
+    if beep_enabled:
+        if sys.platform == "win32":
+            duration = 1000
+            freq = 1000
+            winsound.Beep(freq, duration)
+        elif sys.platform == "linux":
+            # Documentation here: https://docs.python.org/3/library/sys.html#sys.platform 
+            beep(sound=1)
+        else:
+            print("Platform not supported for make_beep_noise().")

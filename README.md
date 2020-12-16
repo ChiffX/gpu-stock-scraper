@@ -35,6 +35,12 @@ At the time of this script, RTX 3080 are being scanned across:
 2. Turn Allow less secure apps on.
 3. Create a .env file, using .env_sample as a guide, and input email information 
 
+### Enabling Discord Messages
+1. Acquire your webhook URL from your Discord server for your selected channel
+    * See here for an explanation: https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks
+2. Assign your webhook URL to DISCORD_WEBHOOK in your .env file
+3. Set discord_message_enabled to True
+
 ### Operation
 `python3 main.py`
 
@@ -47,16 +53,13 @@ The docker image contains the chromedriver and python3, if you already have dock
 
 ### Optional customization
 1. Modify stores_to_check in scrape_canada_computers() and scrape_memory_express() to reflect your local stores
-2. If using Windows, you can uncomment "import winsound" and beep() in scraping_functions.py to get 
-a beep sound when stock is detected.
-3. If you are receiving an error installing dotenv, try "pip3 install python-dotenv"
+2. If you are receiving an error installing dotenv, try "pip3 install python-dotenv"
 
 
 ## Project Next Steps 
 * Add model-specific filtering (meanwhile, filter via website then update URL)
 * Use a more secure method (potentially oauth) for sending emails
 * Refine search_best_buy() to only return matches for select stores
-* Incorporate functioning beep noise for both Linux and Windows when stock is detected
 * Build a config file
 
 
