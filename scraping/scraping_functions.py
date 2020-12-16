@@ -11,6 +11,7 @@ Functions:
     scrape_pc_canada()
     maybe_send_email()
     send_email()
+    send_discord_message()
     title_line()
     beep()
 """
@@ -21,10 +22,17 @@ from email.mime.text import MIMEText
 from fake_useragent import UserAgent
 import os.path
 from os import path
+import requests
+from discord import Webhook, RequestsWebhookAdapter
 # import winsound   # Windows only
 import smtplib
 import dotenv
 import os
+
+
+# Optional use of send_discord_message() and send_email() functions. Set to True for on
+discord_enabled = True
+email_enabled = True
 
 
 def initialize_webdriver():
@@ -447,7 +455,7 @@ def generate_email_body(stock_dict, vendor_name):
 
 def maybe_send_email(item, email_body, email_bodies, vendor_name):
     """Sends an email if the email body is not blank and is not the same as the previous email body
-    Prevents spamming emails.
+    Prevents spamming emails. Optionally sends a discord message too.
 
     :param email_body: a string containing in-stock items
     :return: none
@@ -462,7 +470,13 @@ def maybe_send_email(item, email_body, email_bodies, vendor_name):
             subject = f"{item} in Stock IN STORE at {vendor_name}"
         elif "backorder" in email_body.lower():
             subject = f"{item} available for BACKORDER at {vendor_name}"
-        send_email(subject, email_body) 
+        if discord_enabled:
+            try:
+                send_discord_message(subject, email_body)
+            except:
+                print("Error with sending discord message.")
+        if send_email:
+            send_email(subject, email_body) 
     elif email_body != "":
         print("Previous email items still in stock.")
     else:
@@ -476,9 +490,6 @@ def send_email(subject, email_body):
     :param email_body: a string containing in-stock model details and website link
     :return: none
     """
-    # Manually input login information here
-    # beep()  # Windows only
-
     # Load sensitive login data from local .env file
     dotenv.load_dotenv()
     GMAIL_LOGIN = os.getenv('EMAIL')
@@ -510,6 +521,17 @@ def title_line(vendor_name):
     while len(vendor_name) < 30:
         vendor_name += "-"
     print(vendor_name)
+
+
+def send_discord_message(subject, email_body):
+    """Sends a message to your specific discord channel
+    
+    :param subject: the subject line of an email message
+    :param email_body: the email body of an email message
+    """
+    webhook_url = os.getenv('DISCORD_WEBHOOK')
+    webhook = Webhook.from_url(webhook_url, adapter=RequestsWebhookAdapter())
+    webhook.send(f"{subject}\n{email_body}")
 
 
 # Windows only
