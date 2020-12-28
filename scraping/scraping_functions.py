@@ -37,8 +37,8 @@ elif sys.platform == "linux":
 
 
 # Set to True to turn on
-discord_message_enabled = False
-email_enabled = True
+discord_message_enabled = True
+email_enabled = False
 beep_enabled = True
 
 
@@ -133,7 +133,7 @@ def scrape_newegg(driver, vendor_name):
     # Check all listings on page for stock
     stock_dict = {}
 
-    stock_status_elements = driver.find_elements_by_class_name("item-operate")  # Contains stock information text
+    stock_status_elements = driver.find_elements_by_css_selector("p.item-promo")  # Contains stock information text
     for stock_status in stock_status_elements:
         if "OUT OF STOCK" not in stock_status.text and "SOLD OUT" not in stock_status.text:
             # Secondary check to prevent false-positives for auto notify button
@@ -551,7 +551,9 @@ def send_discord_message(subject, email_body):
     webhook_url = os.getenv('DISCORD_WEBHOOK')
     webhook = Webhook.from_url(webhook_url, adapter=RequestsWebhookAdapter())
     embed = Embed(title=subject, description=email_body)
-    webhook.send(embed=embed)
+    webhook.send(embed=embed, tts=True)
+    if "EVGA" in subject:
+        webhook.send("<@91732723118407680>")
 
 
 def make_beep_noise():
