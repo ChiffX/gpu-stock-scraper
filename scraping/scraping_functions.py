@@ -162,36 +162,35 @@ def scrape_bestbuy(driver, vendor_name):
     :return: the email message body
     """
     # Check all listings on page for stock
-    stock_dict = {}
+    stock_dict = {} 
 
-    stock_status_elements = driver.find_elements_by_class_name("availabilityMessageSearch_23ZLw")  # Contains stock information text
-    for stock_status in stock_status_elements:
-        item_URL_element = stock_status.find_element_by_xpath('./../../../..')
-        item_URL = item_URL_element.get_attribute("href")
-        item_name = (stock_status.find_element_by_xpath('./../div[1]')).text
-        if ("Available to ship" in stock_status.text
-            or "Available online only" in stock_status.text
-            or "Available at nearby stores" in stock_status.text
-            or "Available for backorder" in stock_status.text):
+    listings = driver.find_elements_by_xpath("//a[@itemprop='url']")
+    for listing in listings:
+        item_URL = listing.get_attribute("href")
+        item_name = listing.find_element_by_class_name("productItemName_3IZ3c").text
+        if ("Available to ship" in listing.text
+            or "Available online only" in listing.text
+            or "Available at nearby stores" in listing.text
+            or "Available for backorder" in listing.text):
             stock_dict[item_name] = {}
             stock_dict[item_name]["url"] = item_URL
         
             # Online
-            if "Available to ship" in stock_status.text or "Available online only" in stock_status.text:
+            if "Available to ship" in listing.text or "Available online only" in listing.text:
                 print(f"Online stock found: \n{item_URL}")
                 stock_dict[item_name]["online stock status"] = "In stock"
             else:
                 stock_dict[item_name]["online stock status"] = "Out of stock"
 
             # In store    
-            if "Available at nearby stores" in stock_status.text:
+            if "Available at nearby stores" in listing.text:
                 stock_dict[item_name]["in store status"] = "In store"
                 stock_dict[item_name]["store location"] = "Store location unspecified"
             else:
                 stock_dict[item_name]["in store status"] = "Unavailable in store"
 
             # Backorder
-            if "Available for backorder" in stock_status.text:
+            if "Available for backorder" in listing.text:
                 print(f"Backorder stock found: \n{item_URL}")
                 stock_dict[item_name]["backorder status"] = "Available for backorder"
             else:
@@ -212,7 +211,7 @@ def scrape_memory_express(driver, vendor_name):
     # Add or comment/uncomment desired store location names here, case sensitive
     stores_to_check = [
         "Vancouver",
-        "Victoria",
+        # "Victoria",
         "Burnaby",
         "Richmond",
     ]
@@ -293,10 +292,10 @@ def scrape_canada_computers(driver, vendor_name):
     """
     # Add or comment/uncomment desired store location names here, case sensitive
     stores_to_check = [
-        "Markham Unionville",
-        "Midtown Toronto",
-        "Richmond Hill",
-        "Toronto 284",
+        # "Markham Unionville",
+        # "Midtown Toronto",
+        # "Richmond Hill",
+        # "Toronto 284",
         "Vancouver Broadway",
         "East Vancouver",
         "Burnaby",
@@ -552,8 +551,6 @@ def send_discord_message(subject, email_body):
     webhook = Webhook.from_url(webhook_url, adapter=RequestsWebhookAdapter())
     embed = Embed(title=subject, description=email_body)
     webhook.send(embed=embed, tts=True)
-    if "EVGA" in subject:
-        webhook.send("<@91732723118407680>")
 
 
 def make_beep_noise():
