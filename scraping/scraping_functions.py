@@ -379,22 +379,23 @@ def scrape_amazon(driver, vendor_name):
     """
     # Check all listings on page for stock
     stock_dict = {}
+    price_limit = 1400
 
-    stock_status_elements = driver.find_elements_by_class_name("style__whole__3EZEk")  # Contains price information if in stock
-    for stock_status in stock_status_elements:
-        price = float((stock_status.text).replace(",", ""))
-        # Set price limit here
-        if price < 1300:
-            item_URL_element = stock_status.find_element_by_xpath('./../../../../../../../div[1]/a')
-            item_URL = item_URL_element.get_attribute("href")
-            item_name_element = stock_status.find_element_by_xpath('./../../../../div[1]/a')
-            item_name = item_name_element.text
-            stock_dict[item_name] = {}
-            stock_dict[item_name]["url"] = item_URL
-            print(f"Online stock found: \n{item_URL}")
-            stock_dict[item_name]["online stock status"] = "In stock"
-            stock_dict[item_name]["in store status"] = "Not checked"
-            stock_dict[item_name]["backorder status"] = "Not checked"
+    listings = driver.find_elements_by_class_name("ProductGridItem__itemOuter__5ow0w")
+    for listing in listings:
+        item_URL = (listing.find_element_by_class_name("ProductGridItem__overlay__1ncmn")).get_attribute("href")
+        item_name = listing.find_element_by_class_name("ProductGridItem__title__2C1kS").text
+        price_div_element = listing.find_element_by_class_name("ProductGridItem__price__2H_kW") 
+        if price_div_element.text != "":  # If out of stock, no price will be shown in this div element
+            price = float((listing.find_element_by_class_name("style__whole__3EZEk").text).replace(",", "")) # Formats the price to float
+            # Set price limits here
+            if price < price_limit:
+                stock_dict[item_name] = {}
+                stock_dict[item_name]["url"] = item_URL
+                print(f"Online stock found: \n{item_URL}")
+                stock_dict[item_name]["online stock status"] = "In stock"
+                stock_dict[item_name]["in store status"] = "Not checked"
+                stock_dict[item_name]["backorder status"] = "Not checked"
 
     email_body = generate_email_body(stock_dict, vendor_name)
 
