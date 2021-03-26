@@ -133,18 +133,20 @@ def scrape_newegg(driver, vendor_name):
     # Check all listings on page for stock
     stock_dict = {}
 
-    stock_status_elements = driver.find_elements_by_css_selector("p.item-promo")  # Contains stock information text
-    for stock_status in stock_status_elements:
-        if "OUT OF STOCK" not in stock_status.text and "SOLD OUT" not in stock_status.text:
-            # Secondary check to prevent false-positives for auto notify button
-            secondary_stock_status_element = (stock_status.find_element_by_xpath('./../../div[2]/div/div[1]/button')).text
-            if "AUTO NOTIFY" not in secondary_stock_status_element:
-                item_URL_element = stock_status.find_element_by_xpath('./../../div[1]/a')
-                item_URL = item_URL_element.get_attribute("href")
-                item_name = item_URL_element.text
+    listings = driver.find_elements_by_class_name("item-cell")
+    for listing in listings:
+        item_name = listing.find_element_by_class_name("item-title").text
+        item_URL = listing.find_element_by_class_name("item-title").get_attribute("href")
+        price = listing.find_element_by_class_name("price-current").text
+        stock_status = listing.find_element_by_class_name("item-promo").text
+        secondary_stock_status = listing.find_element_by_class_name("item-button-area").text
+        if ("OUT OF STOCK" not in stock_status 
+            and "SOLD OUT" not in stock_status
+            and "AUTO NOTIFY" not in secondary_stock_status):
                 stock_dict[item_name] = {}
                 stock_dict[item_name]["url"] = item_URL
-                print(f"Online stock found: \n{item_URL}")
+                stock_dict[item_name]["price"] = price
+                print(f"Online stock found: \n{item_URL} for {price}")
                 stock_dict[item_name]["online stock status"] = "In stock"
                 stock_dict[item_name]["in store status"] = "Not checked"
                 stock_dict[item_name]["backorder status"] = "Not checked"
@@ -168,16 +170,18 @@ def scrape_bestbuy(driver, vendor_name):
     for listing in listings:
         item_URL = listing.get_attribute("href")
         item_name = listing.find_element_by_class_name("productItemName_3IZ3c").text
+        price = listing.find_element_by_class_name("price_FHDfG").text
         if ("Available to ship" in listing.text
             or "Available online only" in listing.text
             or "Available at nearby stores" in listing.text
             or "Available for backorder" in listing.text):
             stock_dict[item_name] = {}
             stock_dict[item_name]["url"] = item_URL
+            stock_dict[item_name]["price"] = price
         
             # Online
             if "Available to ship" in listing.text or "Available online only" in listing.text:
-                print(f"Online stock found: \n{item_URL}")
+                print(f"Online stock found: \n{item_URL} for {price}")
                 stock_dict[item_name]["online stock status"] = "In stock"
             else:
                 stock_dict[item_name]["online stock status"] = "Out of stock"
@@ -191,7 +195,7 @@ def scrape_bestbuy(driver, vendor_name):
 
             # Backorder
             if "Available for backorder" in listing.text:
-                print(f"Backorder stock found: \n{item_URL}")
+                print(f"Backorder stock found: \n{item_URL} for {price}")
                 stock_dict[item_name]["backorder status"] = "Available for backorder"
             else:
                 stock_dict[item_name]["backorder status"] = "Unavailable for backorder"
@@ -264,7 +268,7 @@ def scrape_memory_express(driver, vendor_name):
                 store_stock = (store_location.find_element_by_xpath('./../span[2]')).text
                 if (store_stock != "Out of Stock" 
                     and store_stock != "Backorder" 
-                    and int(store_stock.rstrip("+")) > 0):
+                    and int(store_stock.rstrip("+*")) > 0):
                     store = (store_location.text).rstrip(':')
                     if store in stores_to_check:
                         print(f"In-store stock found at {store}: \n{URL}")
@@ -292,10 +296,21 @@ def scrape_canada_computers(driver, vendor_name):
     """
     # Add or comment/uncomment desired store location names here, case sensitive
     stores_to_check = [
-        # "Markham Unionville",
-        # "Midtown Toronto",
-        # "Richmond Hill",
-        # "Toronto 284",
+        # Ontario
+        "Markham",
+        "Midtown Toronto",
+        "Richmond Hill",
+        "Etobicoke",
+        "Newmarket",
+        "North York",
+        "Vaughan",
+        "Downtown Toronto",
+        "Ajax",
+        "Mississauga",
+        "Brampton",
+        "Scarborough",
+
+        # BC
         "Vancouver Broadway",
         "East Vancouver",
         "Burnaby",
@@ -304,16 +319,25 @@ def scrape_canada_computers(driver, vendor_name):
 
     # Check all listings on page for stock
     canada_computer_urls = []
+    stock_dict = {}
 
-    stock_status_elements = driver.find_elements_by_class_name('pq-hdr-bolder')  # Contains stock information text
-    for stock_status in stock_status_elements:
-        if "not available" not in stock_status.text.lower() and "back order" not in stock_status.text.lower():
-            item_URL_element = stock_status.find_element_by_xpath('./../../../../../../div[1]/div/div[2]/span[1]/a')
-            item_URL = item_URL_element.get_attribute("href")
-            canada_computer_urls.append(item_URL)
+    listings = driver.find_elements_by_class_name("stocklevel-pop")
+    for listing in listings:
+        listing_info = listing.find_element_by_xpath("following-sibling::div[1]")
+        try:
+            driver.implicitly_wait(0.01) # Give the scraper 10 ms to look for the element below
+            item_URL = ((listing_info.find_element_by_class_name("productImageSearch")).find_element_by_tag_name("a")).get_attribute("href")
+            # pq-hdr-bolder contains stock information text if the item is in stock at all, otherwise does not appear on page
+            stock_status_element = listing_info.find_elements_by_class_name('pq-hdr-bolder') 
+            if (len(stock_status_element) != 0
+                and "not available" not in stock_status_element.text.lower() 
+                and "back order" not in stock_status_element.text.lower()):
+                    canada_computer_urls.append(item_URL)
+        except:  # When stock_status_element is not on the page for that listing, move on to the next listing
+            pass
+       
 
     # Iterates through individual pages for where stock may have been detected
-    stock_dict = {}
     for URL in canada_computer_urls:
         driver.get(URL)
         driver.implicitly_wait(10)
@@ -383,7 +407,7 @@ def scrape_amazon(driver, vendor_name):
 
     listings = driver.find_elements_by_class_name("ProductGridItem__itemOuter__5ow0w")
     for listing in listings:
-        item_URL = (listing.find_element_by_class_name("ProductGridItem__overlay__1ncmn")).get_attribute("href")
+        item_URL = listing.find_element_by_class_name("ProductGridItem__overlay__1ncmn").get_attribute("href")
         item_name = listing.find_element_by_class_name("ProductGridItem__title__2C1kS").text
         price_div_element = listing.find_element_by_class_name("ProductGridItem__price__2H_kW") 
         if price_div_element.text != "":  # If out of stock, no price will be shown in this div element
@@ -392,7 +416,8 @@ def scrape_amazon(driver, vendor_name):
             if price < price_limit:
                 stock_dict[item_name] = {}
                 stock_dict[item_name]["url"] = item_URL
-                print(f"Online stock found: \n{item_URL}")
+                stock_dict[item_name]["price"] = price
+                print(f"Online stock found: \n{item_URL} for {price}")
                 stock_dict[item_name]["online stock status"] = "In stock"
                 stock_dict[item_name]["in store status"] = "Not checked"
                 stock_dict[item_name]["backorder status"] = "Not checked"
@@ -442,14 +467,14 @@ def generate_email_body(stock_dict, vendor_name):
     stock_summary = []
     for item, details in stock_dict.items():
         if details["online stock status"] == "In stock":
-            stock_summary.append(f"{item} is in stock ONLINE at {vendor_name}\n"
+            stock_summary.append(f"{item} is in stock ONLINE at {vendor_name} for {details['price']}\n"
                                  f"{details['url']}\n\n")
         if details["in store status"] == "In store":
-            stock_summary.append(f"{item} is in stock IN STORE at {vendor_name}\n"
+            stock_summary.append(f"{item} is in stock IN STORE at {vendor_name} for {details['price']}\n"
                                  f"{details['store location'].upper()}\n"
                                  f"{details['url']}\n\n")
         if details["backorder status"] == "Available for backorder":
-            stock_summary.append(f"{item} is AVAILABLE FOR BACKORDER at {vendor_name}\n"
+            stock_summary.append(f"{item} is AVAILABLE FOR BACKORDER at {vendor_name} for {details['price']}\n"
                                  f"{details['url']}\n\n")                        
 
     # Generates an email message from the summary list
